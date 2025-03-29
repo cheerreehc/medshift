@@ -79,7 +79,7 @@ async function setupDatabase() {
     
     // ถ้ายังไม่มี admin ให้สร้าง admin เริ่มต้น
     if (adminRows.length === 0) {
-      const bcrypt = require('bcrypt');
+      const bcrypt = require('bcryptjs');
       const hashedPassword = await bcrypt.hash('admin123', 10);
       
       await connection.query(`

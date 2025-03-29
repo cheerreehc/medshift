@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>หน้าควบคุมหมอ - MedShift</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        .user-info span {
+            margin-right: 15px;
+        }
+        .logout-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .btn {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 8px 15px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-right: 10px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-success {
+            background: #2ecc71;
+        }
+        .btn-danger {
+            background: #e74c3c;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #f5f5f5;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background: white;
+            border: 1px solid #ddd;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>MedShift - ระบบจัดตารางเวรหมอ</h1>
+        <div class="user-info">
+            <span>ยินดีต้อนรับ, <%= user.name %></span>
+            <a href="/auth/logout" class="logout-btn">ออกจากระบบ</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" onclick="openTab(event, 'schedule')">ตารางเวรของฉัน</div>
+            <div class="tab" onclick="openTab(event, 'unavailable')">แจ้งวันที่ไม่สะดวก</div>
+            <div class="tab" onclick="openTab(event, 'profile')">ข้อมูลส่วนตัว</div>
+        </div>
+
+        <div id="schedule" class="tab-content active">
+            <div class="card">
+                <h2>ตารางเวรของฉันประจำเดือน <%= currentMonth %>/<%= currentYear %></h2>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>วันที่</th>
+                            <th>เวร</th>
+                            <th>สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (schedules && schedules.length > 0) { %>
+                            <% schedules.forEach(schedule => { %>
+                                <tr>
+                                    <td><%= schedule.formatted_date %></td>
+                                    <td>
+                                        <% if (schedule.shift === 'morning') { %>
+                                            เช้า (8:00-16:00)
+                                        <% } else if (schedule.shift === 'afternoon') { %>
+                                            บ่าย (16:00-24:00)
+                                        <% } else if (schedule.shift === 'night') { %>
+                                            ดึก (0:00-8:00)
+                                        <% } %>
+                                    </td>
+                                    <td><%= schedule.status %></td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="3" style="text-align: center;">ไม่พบข้อมูลตารางเวร</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="unavailable" class="tab-content">
+            <div class="card">
+                <h2>แจ้งวันที่ไม่สะดวก</h2>
+                
+                <form id="unavailableForm">
+                    <div class="form-group">
+                        <label for="date">วันที่</label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reason">เหตุผล</label>
+                        <textarea id="reason" name="reason" rows="3"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">บันทึก</button>
+                </form>
+                
+                <h3 style="margin-top: 30px;">วันที่ไม่สะดวกที่แจ้งไว้</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>วันที่</th>
+                            <th>เหตุผล</th>
+                            <th>จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (unavailableDates && unavailableDates.length > 0) { %>
+                            <% unavailableDates.forEach(date => { %>
+                                <tr>
+                                    <td><%= date.formatted_date %></td>
+                                    <td><%= date.reason || '-' %></td>
+                                    <td>
+                                        <button class="btn btn-danger" onclick="deleteUnavailableDate(<%= date.id %>)">ลบ</button>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="3" style="text-align: center;">ไม่พบข้อมูลวันที่ไม่สะดวก</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="profile" class="tab-content">
+            <div class="card">
+                <h2>ข้อมูลส่วนตัว</h2>
+                
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label for="name">ชื่อ-นามสกุล</label>
+                        <input type="text" id="name" name="name" value="<%= user.name %>" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">อีเมล</label>
+                        <input type="email" id="email" name="email" value="<%= user.email || '' %>">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">เบอร์โทรศัพท์</label>
+                        <input type="tel" id="phone" name="phone" value="<%= user.phone || '' %>">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">บันทึก</button>
+                </form>
+                
+                <h3 style="margin-top: 30px;">เปลี่ยนรหัสผ่าน</h3>
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label for="currentPassword">รหัสผ่านปัจจุบัน</label>
+                        <input type="password" id="currentPassword" name="currentPassword" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newPassword">รหัสผ่านใหม่</label>
+                        <input type="password" id="newPassword" name="newPassword" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">ยืนยันรหัสผ่านใหม่</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">เปลี่ยนรหัสผ่าน</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            
+            // ซ่อน tab content ทั้งหมด
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].className = tabcontent[i].className.replace(" active", "");
+            }
+            
+            // ลบ active class จาก tab ทั้งหมด
+            tablinks = document.getElementsByClassName("tab");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            
+            // แสดง tab content ที่เลือกและเพิ่ม active class ให้กับ tab
+            document.getElementById(tabName).className += " active";
+            evt.currentTarget.className += " active";
+        }
+        
+        document.getElementById('unavailableForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert("ฟีเจอร์นี้ยังไม่พร้อมใช้งาน");
+            // ส่ง request ไปบันทึกวันที่ไม่สะดวก
+        });
+        
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert("ฟีเจอร์นี้ยังไม่พร้อมใช้งาน");
+            // ส่ง request ไปอัปเดตข้อมูลส่วนตัว
+        });
+        
+        document.getElementById('passwordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert("ฟีเจอร์นี้ยังไม่พร้อมใช้งาน");
+            // ส่ง request ไปเปลี่ยนรหัสผ่าน
+        });
+        
+        function deleteUnavailableDate(id) {
+            if (confirm("คุณแน่ใจหรือไม่ที่จะลบวันที่ไม่สะดวกนี้?")) {
+                alert("ฟีเจอร์นี้ยังไม่พร้อมใช้งาน");
+                // ส่ง request ไปลบวันที่ไม่สะดวก
+            }
+        }
+    </script>
+</body>
+</html>

@@ -38,10 +38,10 @@ router.get('/dashboard', checkAuth, checkAdmin, async (req, res) => {
     
     const [schedules] = await pool.query(
       `SELECT s.*, u.name as doctor_name, DATE_FORMAT(s.date, '%Y-%m-%d') as formatted_date 
-       FROM schedules s 
-       JOIN users u ON s.doctor_id = u.id 
-       WHERE s.date BETWEEN ? AND ? 
-       ORDER BY s.date, s.shift`,
+      FROM schedules s 
+      JOIN users u ON s.doctor_id = u.id 
+      WHERE s.date BETWEEN ? AND ? 
+      ORDER BY s.date, s.shift_type_id`,  // เปลี่ยนจาก s.shift เป็น s.shift_type_id
       [startDate, endDate]
     );
     
@@ -54,6 +54,16 @@ router.get('/dashboard', checkAuth, checkAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error loading admin dashboard:', error);
     res.status(500).render('error', { message: 'เกิดข้อผิดพลาดในการโหลดข้อมูล' });
+  }
+});
+
+// หน้าปฏิทินตารางเวร
+router.get('/calendar', checkAuth, checkAdmin, async (req, res) => {
+  try {
+    res.render('calendar');
+  } catch (error) {
+    console.error('Error loading calendar:', error);
+    res.status(500).render('error', { message: 'เกิดข้อผิดพลาดในการโหลดปฏิทิน' });
   }
 });
 
@@ -276,6 +286,170 @@ router.delete('/doctors/:id', checkAuth, checkAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error deleting doctor:', error);
     res.status(500).json({ error: 'เกิดข้อผิดพลาดในการลบหมอ' });
+  }
+});
+
+// ดึงข้อมูลแพทย์ทั้งหมด
+router.get('/doctors', checkAuth, async (req, res) => {
+  try {
+    const [doctors] = await pool.query(
+      'SELECT u.id, u.name, u.email, u.phone, p.name as position_name, d.name as department_name ' +
+      'FROM users u ' +
+      'LEFT JOIN doctor_positions p ON u.position_id = p.id ' +
+      'LEFT JOIN ward_departments d ON u.department_id = d.id ' +
+      'WHERE u.role = "doctor" AND u.is_available = TRUE ' +
+      'ORDER BY u.name'
+    );
+    
+    res.json(doctors);
+  } catch (error) {
+    console.error('Error fetching doctors:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูลแพทย์' });
+  }
+});
+
+// ดึงข้อมูลแผนกทั้งหมด
+router.get('/departments', checkAuth, async (req, res) => {
+  try {
+    const [departments] = await pool.query(
+      'SELECT id, name FROM ward_departments WHERE is_active = TRUE ORDER BY name'
+    );
+    
+    res.json(departments);
+  } catch (error) {
+    console.error('Error fetching departments:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูลแผนก' });
+  }
+});
+
+// ดึงข้อมูลประเภทเวรทั้งหมด
+router.get('/shift-types', checkAuth, async (req, res) => {
+  try {
+    const [shiftTypes] = await pool.query(
+      'SELECT id, name FROM shift_types WHERE is_active = TRUE ORDER BY name'
+    );
+    
+    res.json(shiftTypes);
+  } catch (error) {
+    console.error('Error fetching shift types:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูลประเภทเวร' });
+  }
+});
+
+// ดึงข้อมูลสถานที่ทั้งหมด
+router.get('/locations', checkAuth, async (req, res) => {
+  try {
+    const [locations] = await pool.query(
+      'SELECT id, name FROM locations WHERE is_active = TRUE ORDER BY name'
+    );
+    
+    res.json(locations);
+  } catch (error) {
+    console.error('Error fetching locations:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูลสถานที่' });
+  }
+});
+
+// ดึงข้อมูลเวรตามวันที่
+router.get('/schedules/date/:date', checkAuth, checkAdmin, async (req, res) => {
+  try {
+    const date = req.params.date;
+    
+    const [schedules] = await pool.query(
+      `SELECT s.id, s.doctor_id, s.shift_type_id, s.location_id, s.notes, 
+              u.name as doctor_name, st.name as shift_type_name 
+       FROM schedules s 
+       JOIN users u ON s.doctor_id = u.id 
+       LEFT JOIN shift_types st ON s.shift_type_id = st.id 
+       WHERE DATE(s.date) = ? 
+       ORDER BY s.shift_type_id, u.name`,
+      [date]
+    );
+    
+    res.json(schedules);
+  } catch (error) {
+    console.error('Error fetching schedules by date:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูลตารางเวร' });
+  }
+});
+
+// ดึงข้อมูลเวรรายการเดียว
+router.get('/schedules/:id', checkAuth, async (req, res) => {
+  try {
+    const scheduleId = req.params.id;
+    
+    const [schedules] = await pool.query(
+      `SELECT s.*, DATE_FORMAT(s.date, '%Y-%m-%d') as date
+       FROM schedules s 
+       WHERE s.id = ?`,
+      [scheduleId]
+    );
+    
+    if (schedules.length === 0) {
+      return res.status(404).json({ error: 'ไม่พบข้อมูลตารางเวร' });
+    }
+    
+    res.json(schedules[0]);
+  } catch (error) {
+    console.error('Error fetching schedule:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูลตารางเวร' });
+  }
+});
+
+// เพิ่มตารางเวร
+router.post('/schedules', checkAuth, async (req, res) => {
+  try {
+    const { date, doctor_id, shift_type_id, location_id, notes } = req.body;
+    
+    // ตรวจสอบข้อมูลที่จำเป็น
+    if (!date || !doctor_id || !shift_type_id) {
+      return res.status(400).json({ error: 'กรุณาระบุข้อมูลวันที่, แพทย์, และประเภทเวรให้ครบถ้วน' });
+    }
+    
+    // สร้างตารางเวรใหม่
+    const [result] = await pool.query(
+      `INSERT INTO schedules (doctor_id, shift_type_id, date, location_id, notes, created_by) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [doctor_id, shift_type_id, date, location_id, notes, req.session.user.id]
+    );
+    
+    res.status(201).json({ 
+      message: 'เพิ่มตารางเวรเรียบร้อยแล้ว', 
+      id: result.insertId 
+    });
+  } catch (error) {
+    console.error('Error creating schedule:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการสร้างตารางเวร' });
+  }
+});
+
+// แก้ไขตารางเวร
+router.put('/schedules/:id', checkAuth, async (req, res) => {
+  try {
+    const scheduleId = req.params.id;
+    const { date, doctor_id, shift_type_id, location_id, notes } = req.body;
+    
+    // ตรวจสอบข้อมูลที่จำเป็น
+    if (!date || !doctor_id || !shift_type_id) {
+      return res.status(400).json({ error: 'กรุณาระบุข้อมูลวันที่, แพทย์, และประเภทเวรให้ครบถ้วน' });
+    }
+    
+    // อัปเดตตารางเวร
+    await pool.query(
+      `UPDATE schedules SET 
+        doctor_id = ?, 
+        shift_type_id = ?, 
+        date = ?, 
+        location_id = ?, 
+        notes = ? 
+       WHERE id = ?`,
+      [doctor_id, shift_type_id, date, location_id, notes, scheduleId]
+    );
+    
+    res.json({ message: 'อัปเดตตารางเวรเรียบร้อยแล้ว' });
+  } catch (error) {
+    console.error('Error updating schedule:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการอัปเดตตารางเวร' });
   }
 });
 

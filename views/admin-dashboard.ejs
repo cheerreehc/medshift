@@ -3,6 +3,7 @@
 <head>
     <title>หน้าควบคุมผู้ดูแลระบบ - MedShift</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/calendar.css">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
@@ -140,9 +141,12 @@
         </div>
     </div>
 
+
+
     <div class="container">
         <div class="tabs">
             <div class="tab active" onclick="openTab(event, 'schedule')">ตารางเวร</div>
+            <div class="tab" onclick="openTab(event, 'calendar')">ปฏิทินตารางเวร</div>
             <div class="tab" onclick="openTab(event, 'doctors')">จัดการหมอ</div>
             <div class="tab" onclick="openTab(event, 'settings')">ตั้งค่า</div>
         </div>
@@ -193,6 +197,39 @@
                 </table>
             </div>
         </div>
+
+    <!-- Add this HTML code inside your admin-dashboard.ejs file -->
+    <div id="calendar" class="tab-content">
+        <div class="card">
+            <h2>ปฏิทินตารางเวร</h2>
+            
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <div>
+                        <h3><span id="current-month">เดือน</span> <span id="current-year">ปี</span></h3>
+                    </div>
+                    <div class="calendar-controls">
+                        <button class="btn" onclick="previousMonth()">&#8592; เดือนก่อนหน้า</button>
+                        <button class="btn" onclick="nextMonth()">เดือนถัดไป &#8594;</button>
+                    </div>
+                </div>
+                
+                <div class="calendar-weekdays">
+                    <div>อาทิตย์</div>
+                    <div>จันทร์</div>
+                    <div>อังคาร</div>
+                    <div>พุธ</div>
+                    <div>พฤหัสบดี</div>
+                    <div>ศุกร์</div>
+                    <div>เสาร์</div>
+                </div>
+                
+                <div id="calendar-days" class="calendar-days">
+                    <!-- วันในปฏิทินจะถูกสร้างด้วย JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
 
         <div id="doctors" class="tab-content">
             <div class="card">
@@ -428,6 +465,7 @@
             });
             
         // ส่งฟอร์มแก้ไขข้อมูลหมอ
+        const element = document.getElementById('editDoctorForm');
         document.getElementById('editDoctorForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 
@@ -497,6 +535,8 @@
             });
         });
     </script>
+
+    <script src="/js/calendar.js"></script>
 
     <!-- Modal เพิ่มหมอ -->
         <div id="addDoctorModal" class="modal">
@@ -594,6 +634,6 @@
                 </form>
             </div>
         </div>
-        
+
 </body>
 </html>

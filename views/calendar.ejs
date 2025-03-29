@@ -1,0 +1,102 @@
+<!-- views/calendar.ejs -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ตารางเวรแพทย์ - MedShift</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/calendar.css">
+</head>
+<body>
+    <div class="header">
+        <h1>MedShift - ระบบจัดตารางเวรหมอ</h1>
+        <div class="user-info">
+            <span>ยินดีต้อนรับ, <%= user.name %></span>
+            <a href="/auth/logout" class="logout-btn">ออกจากระบบ</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="calendar-header">
+            <h2>ตารางเวรประจำเดือน <span id="current-month">มีนาคม</span> <span id="current-year">2568</span></h2>
+            <div class="calendar-controls">
+                <button class="btn btn-secondary" onclick="previousMonth()">เดือนก่อนหน้า</button>
+                <button class="btn btn-secondary" onclick="nextMonth()">เดือนถัดไป</button>
+                <select id="department-filter" onchange="filterDepartment()">
+                    <option value="">ทุกแผนก</option>
+                    <!-- จะเติมข้อมูลแผนกจาก JavaScript -->
+                </select>
+            </div>
+        </div>
+
+        <div class="calendar-container">
+            <div class="calendar-weekdays">
+                <div>อาทิตย์</div>
+                <div>จันทร์</div>
+                <div>อังคาร</div>
+                <div>พุธ</div>
+                <div>พฤหัสบดี</div>
+                <div>ศุกร์</div>
+                <div>เสาร์</div>
+            </div>
+
+            <div class="calendar-days" id="calendar-days">
+                <!-- วันในปฏิทินจะถูกสร้างด้วย JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับเพิ่ม/แก้ไขเวร -->
+    <div class="modal" id="shift-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">เพิ่มเวร</h3>
+                <span class="close" onclick="closeShiftModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="shift-form">
+                    <input type="hidden" id="shift-id">
+                    <input type="hidden" id="shift-date">
+
+                    <div class="form-group">
+                        <label for="doctor-select">แพทย์</label>
+                        <select id="doctor-select" required>
+                            <option value="">เลือกแพทย์</option>
+                            <!-- จะเติมข้อมูลแพทย์จาก JavaScript -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="shift-type-select">ประเภทเวร</label>
+                        <select id="shift-type-select" required>
+                            <option value="">เลือกประเภทเวร</option>
+                            <!-- จะเติมข้อมูลประเภทเวรจาก JavaScript -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location-select">สถานที่</label>
+                        <select id="location-select">
+                            <option value="">เลือกสถานที่</option>
+                            <!-- จะเติมข้อมูลสถานที่จาก JavaScript -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="shift-notes">บันทึกเพิ่มเติม</label>
+                        <textarea id="shift-notes" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeShiftModal()">ยกเลิก</button>
+                        <button type="submit" class="btn btn-primary">บันทึก</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/calendar.js"></script>
+</body>
+</html>

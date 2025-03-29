@@ -1,0 +1,89 @@
+/* เพิ่ม CSS สำหรับปฏิทิน */
+.calendar-container {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: white;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendar-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+}
+
+.calendar-weekdays div {
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: minmax(120px, auto);
+}
+
+.calendar-day {
+    border: 1px solid #ddd;
+    padding: 5px;
+    min-height: 120px;
+    position: relative;
+    background-color: white;
+}
+
+.calendar-day.empty {
+    background-color: #f9f9f9;
+}
+
+.day-header {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.day-header.weekend {
+    color: red;
+}
+
+.day-shifts {
+    min-height: 80px;
+}
+
+.shift-item {
+    background-color: #e1f5fe;
+    border-radius: 3px;
+    padding: 2px 5px;
+    margin-bottom: 2px;
+    font-size: 12px;
+    border-left: 3px solid #03a9f4;
+}
+
+.add-shift-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

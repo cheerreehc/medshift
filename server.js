@@ -9,7 +9,25 @@ const { testConnection, setupDatabase } = require('./models/database');
 
 // เริ่มต้น Express app
 const app = express();
-const PORT = process.env.PORT || 3000;
+// หาพอร์ตใหม่หากพอร์ตที่กำหนดถูกใช้งานแล้ว
+const PORT = process.env.PORT || 8080;
+
+function startServer() {
+  const server = app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  }).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`Port ${PORT} is already in use. Trying another port...`);
+      // ลองใช้พอร์ตอื่น
+      setTimeout(() => {
+        server.close();
+        app.listen(PORT + 1);
+      }, 1000);
+    } else {
+      console.error('Server error:', err);
+    }
+  });
+}
 
 // รูปแบบ middleware
 app.use(bodyParser.json());

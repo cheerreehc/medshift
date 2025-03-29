@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>หน้าควบคุมผู้ดูแลระบบ - MedShift</title>
+    <link rel="stylesheet" href="/css/style.css">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
@@ -263,38 +264,336 @@
         }
         
         function showAddShiftModal() {
-            alert("ฟีเจอร์นี้ยังไม่พร้อมใช้งาน");
-            // สร้าง modal สำหรับเพิ่มเวร
+            document.getElementById('addShiftModal').style.display = 'block';
+            document.getElementById('addShiftForm').reset();
+            
+            // กำหนดวันที่เป็นวันปัจจุบัน
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById('shiftDate').value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        function hideAddShiftModal() {
+            document.getElementById('addShiftModal').style.display = 'none';
         }
         
         function showAddDoctorModal() {
-            alert("ฟีเจอร์นี้ยังไม่พร้อมใช้งาน");
-            // สร้าง modal สำหรับเพิ่มหมอ
+            document.getElementById('addDoctorModal').style.display = 'block';
+            document.getElementById('addDoctorForm').reset();
         }
-        
+
+        function hideAddDoctorModal() {
+            document.getElementById('addDoctorModal').style.display = 'none';
+        }
+
         function editDoctor(id) {
-            alert("ฟีเจอร์นี้ยังไม่พร้อมใช้งาน");
-            // สร้าง modal สำหรับแก้ไขข้อมูลหมอ
+            // ดึงข้อมูลหมอจาก API
+            fetch(`/admin/doctors/${id}/json`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                document.getElementById('editDoctorId').value = data.id;
+                document.getElementById('editName').value = data.name;
+                document.getElementById('editEmail').value = data.email || '';
+                document.getElementById('editPhone').value = data.phone || '';
+                document.getElementById('editDoctorModal').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error fetching doctor:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลหมอ');
+            });
         }
-        
+
+        function hideEditDoctorModal() {
+            document.getElementById('editDoctorModal').style.display = 'none';
+        }
+
         function deleteDoctor(id) {
             if (confirm("คุณแน่ใจหรือไม่ที่จะลบหมอคนนี้?")) {
-                alert("ฟีเจอร์นี้ยังไม่พร้อมใช้งาน");
-                // ส่ง request ไปลบหมอ
+                fetch(`/admin/doctors/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        alert(data.message);
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('เกิดข้อผิดพลาดในการลบหมอ');
+                });
             }
         }
         
         function deleteShift(id) {
-            if (confirm("คุณแน่ใจหรือไม่ที่จะลบเวรนี้?")) {
-                alert("ฟีเจอร์นี้ยังไม่พร้อมใช้งาน");
-                // ส่ง request ไปลบเวร
+                    if (confirm("คุณแน่ใจหรือไม่ที่จะลบเวรนี้?")) {
+                fetch(`/admin/schedules/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        alert(data.message);
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('เกิดข้อผิดพลาดในการลบเวร');
+                });
             }
         }
         
         function generateAutoSchedule() {
-            alert("ฟีเจอร์นี้ยังไม่พร้อมใช้งาน");
-            // ส่ง request ไปสร้างตารางเวรอัตโนมัติ
+            const currentDate = new Date();
+            const month = currentDate.getMonth() + 1;
+            const year = currentDate.getFullYear();
+            
+            if (confirm(`คุณต้องการสร้างตารางเวรอัตโนมัติสำหรับเดือน ${month}/${year} ใช่หรือไม่?`)) {
+                fetch('/admin/auto-schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ month, year })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        alert(data.message);
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('เกิดข้อผิดพลาดในการสร้างตารางเวรอัตโนมัติ');
+                });
+            }
         }
+
+        // รอให้ DOM โหลดเสร็จก่อนเพิ่ม event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // ส่งฟอร์มเพิ่มหมอ
+            document.getElementById('addDoctorForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    username: document.getElementById('username').value,
+                    password: document.getElementById('password').value,
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value || null,
+                    phone: document.getElementById('phone').value || null
+                };
+                
+                fetch('/admin/doctors', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        alert(data.message);
+                        hideAddDoctorModal();
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('เกิดข้อผิดพลาดในการเพิ่มหมอ');
+                });
+            });
+            
+        // ส่งฟอร์มแก้ไขข้อมูลหมอ
+        document.getElementById('editDoctorForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const id = document.getElementById('editDoctorId').value;
+                const formData = {
+                    name: document.getElementById('editName').value,
+                    email: document.getElementById('editEmail').value || null,
+                    phone: document.getElementById('editPhone').value || null
+                };
+                
+                fetch(`/admin/doctors/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        alert(data.message);
+                        hideEditDoctorModal();
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('เกิดข้อผิดพลาดในการแก้ไขข้อมูลหมอ');
+                });
+            });
+        });
+
+        document.getElementById('addShiftForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                doctorId: document.getElementById('doctorId').value,
+                date: document.getElementById('shiftDate').value,
+                shift: document.getElementById('shift').value
+            };
+            
+            fetch('/admin/schedules', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    if (data.reason) {
+                        alert('เหตุผล: ' + data.reason);
+                    }
+                } else {
+                    alert(data.message);
+                    hideAddShiftModal();
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('เกิดข้อผิดพลาดในการเพิ่มเวร');
+            });
+        });
     </script>
+
+    <!-- Modal เพิ่มหมอ -->
+        <div id="addDoctorModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="hideAddDoctorModal()">&times;</span>
+                <h2>เพิ่มหมอ</h2>
+                <form id="addDoctorForm">
+                    <div class="form-group">
+                        <label for="name">ชื่อ-นามสกุล</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="username">ชื่อผู้ใช้</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">รหัสผ่าน</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">อีเมล</label>
+                        <input type="email" id="email" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">เบอร์โทรศัพท์</label>
+                        <input type="tel" id="phone" name="phone">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn" onclick="hideAddDoctorModal()">ยกเลิก</button>
+                        <button type="submit" class="btn btn-success">บันทึก</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal แก้ไขข้อมูลหมอ -->
+        <div id="editDoctorModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="hideEditDoctorModal()">&times;</span>
+                <h2>แก้ไขข้อมูลหมอ</h2>
+                <form id="editDoctorForm">
+                    <input type="hidden" id="editDoctorId" name="id">
+                    <div class="form-group">
+                        <label for="editName">ชื่อ-นามสกุล</label>
+                        <input type="text" id="editName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEmail">อีเมล</label>
+                        <input type="email" id="editEmail" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhone">เบอร์โทรศัพท์</label>
+                        <input type="tel" id="editPhone" name="phone">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn" onclick="hideEditDoctorModal()">ยกเลิก</button>
+                        <button type="submit" class="btn btn-success">บันทึก</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal เพิ่มเวร -->
+        <div id="addShiftModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="hideAddShiftModal()">&times;</span>
+                <h2>เพิ่มเวร</h2>
+                <form id="addShiftForm">
+                    <div class="form-group">
+                        <label for="shiftDate">วันที่</label>
+                        <input type="date" id="shiftDate" name="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="doctorId">หมอ</label>
+                        <select id="doctorId" name="doctorId" required>
+                            <option value="">กรุณาเลือกหมอ</option>
+                            <% doctors.forEach(doctor => { %>
+                                <option value="<%= doctor.id %>"><%= doctor.name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="shift">เวร</label>
+                        <select id="shift" name="shift" required>
+                            <option value="">กรุณาเลือกเวร</option>
+                            <option value="morning">เช้า (8:00-16:00)</option>
+                            <option value="afternoon">บ่าย (16:00-24:00)</option>
+                            <option value="night">ดึก (0:00-8:00)</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn" onclick="hideAddShiftModal()">ยกเลิก</button>
+                        <button type="submit" class="btn btn-success">บันทึก</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
 </body>
 </html>

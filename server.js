@@ -52,7 +52,7 @@ app.get('/', (req, res) => {
       res.redirect('/doctor/dashboard');
     }
   } else {
-    res.render('index');
+    res.render('login');
   }
 });
 

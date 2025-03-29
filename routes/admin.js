@@ -117,6 +117,29 @@ router.post('/doctors', checkAuth, checkAdmin, async (req, res) => {
   }
 });
 
+// เพิ่ม API สำหรับดึงข้อมูลหมอรายบุคคล
+router.get('/doctors/:id/json', checkAuth, checkAdmin, async (req, res) => {
+  try {
+    const doctorId = req.params.id;
+    
+    // ดึงข้อมูลหมอ
+    const [doctors] = await pool.query(
+      'SELECT id, username, name, email, phone, created_at FROM users WHERE id = ? AND role = "doctor"',
+      [doctorId]
+    );
+    
+    if (doctors.length === 0) {
+      return res.status(404).json({ error: 'ไม่พบข้อมูลหมอ' });
+    }
+    
+    const doctor = doctors[0];
+    res.json(doctor);
+  } catch (error) {
+    console.error('Error loading doctor details:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการโหลดข้อมูลหมอ' });
+  }
+});
+
 // ดูข้อมูลหมอ
 router.get('/doctors/:id', checkAuth, checkAdmin, async (req, res) => {
   try {
@@ -419,7 +442,7 @@ router.post('/auto-schedule', checkAuth, checkAdmin, async (req, res) => {
     
     // ดึงข้อมูลหมอทั้งหมด
     const [doctors] = await pool.query(
-      'SELECT id, name FROM users WHERE role = "doctor" ORDER BY name'
+      'SELECT id, username, name, email, phone FROM users WHERE role = "doctor" ORDER BY name'
     );
     
     if (doctors.length === 0) {

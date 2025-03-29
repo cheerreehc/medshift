@@ -1,4 +1,6 @@
-// server.js - ไฟล์หลักสำหรับ MedFlex application
+require('dotenv').config();
+
+// server.js - ไฟล์หลักสำหรับ MedShift application
 const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
@@ -16,7 +18,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ตั้งค่า session
 app.use(session({
-  secret: 'medflex-secret-key',
+  secret: 'medshift-secret-key',
   resave: false,
   saveUninitialized: true,
   cookie: { maxAge: 3600000 } // 1 hour
@@ -69,7 +71,7 @@ async function startServer() {
     
     // เริ่ม server
     app.listen(PORT, () => {
-      console.log(`MedFlex server is running on http://localhost:${PORT}`);
+      console.log(`MedShift server is running on http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
